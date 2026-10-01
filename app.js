@@ -20,20 +20,23 @@ const settings = () => ({
 
 // ---------- Texte ----------
 const PHRASES = {
-  vegetarisch: { jp: "私はベジタリアンです。肉と魚は食べられません。", de: "Ich bin Vegetarier:in. Ich esse kein Fleisch und keinen Fisch." },
-  streng: { jp: "私はベジタリアンです。肉、魚、鰹節やだし（魚のスープ）も食べられません。昆布だしは大丈夫です。", de: "Ich bin Vegetarier:in. Kein Fleisch, kein Fisch, auch keine Bonito-Flocken oder Fisch-Dashi. Kombu-Dashi ist okay." },
+  pesce: { jp: "私はペスカタリアンです。肉（牛肉・豚肉・鶏肉）は食べられませんが、魚とだしは大丈夫です。", de: "Ich esse pescetarisch: kein Fleisch (Rind, Schwein, Huhn), aber Fisch und Dashi sind okay." },
+  vegetarisch: { jp: "私はベジタリアンです。肉、魚、鰹節やだし（魚のスープ）も食べられません。昆布だしは大丈夫です。", de: "Ich bin Vegetarier:in. Kein Fleisch, kein Fisch, auch keine Bonito-Flocken oder Fisch-Dashi. Kombu-Dashi ist okay." },
   vegan: { jp: "私はヴィーガンです。肉、魚、だし、卵、乳製品は食べられません。", de: "Ich bin Veganer:in. Kein Fleisch, Fisch, Dashi, Ei oder Milchprodukte." }
 };
-const ASK_JP = "この料理に肉、魚、またはだし（鰹節）は入っていますか？";
-const ASK_DE = "„Enthält dieses Gericht Fleisch, Fisch oder Dashi (Bonito)?“";
-const LABEL = { veg: "Vegetarisch", ask: "Nachfragen", no: "Nicht vegetarisch" };
+const ASK = {
+  pesce: { jp: "この料理に肉や肉のスープ（豚骨・鶏ガラなど）は入っていますか？", de: "„Enthält dieses Gericht Fleisch oder Fleischbrühe (Schwein, Huhn)?“" },
+  vegetarisch: { jp: "この料理に肉、魚、またはだし（鰹節）は入っていますか？", de: "„Enthält dieses Gericht Fleisch, Fisch oder Dashi (Bonito)?“" },
+  vegan: { jp: "この料理に肉、魚、だし、卵、乳製品は入っていますか？", de: "„Enthält dieses Gericht Fleisch, Fisch, Dashi, Ei oder Milchprodukte?“" }
+};
+const LABEL = { veg: "Passt", ask: "Nachfragen", no: "Passt nicht" };
 const VENUE_LABEL = { veg: "Gut geeignet. ", ask: "Eingeschränkt. ", no: "Schwierig. " };
 const DIET_RULES = {
-  vegetarisch: "Die Person isst vegetarisch: kein Fleisch, kein Fisch, keine Meeresfrüchte. Eier und Milchprodukte sind ok. Versteckte Fisch- oder Fleischbrühen und -saucen zählen als nicht vegetarisch; wenn ein Gericht so etwas nur wahrscheinlich enthält, markiere es als \"ask\".",
-  streng: "Die Person isst streng vegetarisch: kein Fleisch, kein Fisch, keine Meeresfrüchte und keine versteckten tierischen Zutaten (Fisch- oder Fleischbrühe, Fischsauce, Garnelenpaste, Austernsauce, Sardellen, Schmalz, Gelatine). Eier und Milch sind ok. Reine Algen- oder Gemüsebrühe ist ok.",
+  pesce: "Die Person isst pescetarisch: kein Fleisch und kein Geflügel, auch keine Fleisch- oder Hühnerbrühe (z. B. Tonkotsu, Torigara), kein Schmalz, keine Gelatine. Fisch, Meeresfrüchte, Dashi, Fischsauce, Eier und Milch sind ok. Wenn ein Gericht wahrscheinlich Fleischbrühe, Schmalz oder kleine Fleischstücke enthält (z. B. Ramen, Gyoza, Chāhan, Okonomiyaki mit Schwein), markiere es als \"ask\".",
+  vegetarisch: "Die Person isst vegetarisch: kein Fleisch, kein Fisch, keine Meeresfrüchte und keine versteckten tierischen Zutaten (Fisch- oder Fleischbrühe wie Bonito-Dashi, Fischsauce, Garnelenpaste, Austernsauce, Sardellen, Schmalz, Gelatine). Eier und Milch sind ok. Reine Algen- oder Gemüsebrühe ist ok. Wenn ein Gericht so etwas nur wahrscheinlich enthält, markiere es als \"ask\".",
   vegan: "Die Person isst vegan: keine tierischen Produkte, also auch kein Ei, keine Milchprodukte, kein Honig und keine versteckten tierischen Zutaten (Fisch- oder Fleischbrühe, Fischsauce, Garnelenpaste, Austernsauce, Sardellen, Schmalz, Gelatine, Ghee)."
 };
-const DIET_NAME_PROMPT = { vegetarisch: "vegetarisch (Ei und Milch ok)", streng: "streng vegetarisch (Ei und Milch ok, aber keine Fisch- oder Fleischbrühe)", vegan: "vegan" };
+const DIET_NAME_PROMPT = { pesce: "pescetarisch (kein Fleisch und keine Fleischbrühe, aber Fisch, Meeresfrüchte und Fischbrühe sind ok)", vegetarisch: "vegetarisch (Ei und Milch ok, aber kein Fisch und keine Fisch- oder Fleischbrühe)", vegan: "vegan" };
 
 function buildPrompt(diet) {
   return `Du bist Experte für internationale Küche und hilfst Reisenden im Restaurant. Die Fotos zeigen eine Speisekarte in irgendeiner Sprache (oft Japanisch, aber auch Chinesisch, Koreanisch, Thai, Italienisch usw.), gedruckt oder handschriftlich auf einer Tafel. Mehrere Fotos sind Seiten derselben Karte.
@@ -46,7 +49,7 @@ Japan: Dashi (Bonito) in Miso-Suppe, Udon, Soba, Nimono, Chawanmushi, Tempura-Di
 China/Taiwan: Austernsauce, Schmalz, Hühnerbrühe, Hackfleisch in Gemüsegerichten (z. B. Mapo Tofu, Auberginen).
 Korea: Sardellenbrühe in Suppen und Eintöpfen, Fischsauce und Garnelen im Kimchi.
 Südostasien: Fischsauce, Garnelenpaste, getrocknete Garnelen.
-Europa: Sardellen, Speck oder Fleischbrühe in Saucen, Suppen und Risotto, Gelatine in Desserts, Käse mit tierischem Lab (nur bei streng relevant als Hinweis).
+Europa: Sardellen, Speck oder Fleischbrühe in Saucen, Suppen und Risotto, Gelatine in Desserts, Käse mit tierischem Lab (bei vegetarisch nur als Hinweis).
 Bei Kursmenüs (Kaiseki, Omakase, Degustation) ist jeder Gang ein Eintrag. Bei Sets (Teishoku, Bentō, Menü) nenne im Grund die üblichen Beilagen. Getränke nur aufnehmen, wenn sie für die Ernährung relevant sind.
 status: "veg" = passt sicher, "ask" = passt wahrscheinlich oder unklar, beim Personal nachfragen, "no" = enthält eindeutig Ungeeignetes.
 Wenn eine Stelle schwer lesbar ist, schreibe deine beste Lesung und vermerke die Unsicherheit im Grund.
@@ -67,7 +70,7 @@ let current = null;       // {meta, dishes, ts, diet, model, sample?}
 let filter = "all";
 let ctl = null;
 
-const diet = () => (document.querySelector('input[name="diet"]:checked') || {}).value || "vegetarisch";
+const diet = () => (document.querySelector('input[name="diet"]:checked') || {}).value || "pesce";
 
 // ---------- DOM-Helfer ----------
 function el(tag, cls, text) {
@@ -305,7 +308,7 @@ function updateHead() {
   if (current.dishes.length) {
     const c = counts();
     const tally = el("div", "tally");
-    [["all", "Alle", current.dishes.length], ["veg", "Vegetarisch", c.veg], ["ask", "Nachfragen", c.ask], ["no", "Nicht veg.", c.no]].forEach(([k, l, n]) => {
+    [["all", "Alle", current.dishes.length], ["veg", "Passt", c.veg], ["ask", "Nachfragen", c.ask], ["no", "Passt nicht", c.no]].forEach(([k, l, n]) => {
       const b = el("button", "chip" + (k === "all" ? "" : " " + k)); b.type = "button";
       b.setAttribute("aria-pressed", String(filter === k));
       if (k !== "all") b.append(el("i"));
@@ -347,7 +350,7 @@ function dishCard(d, animate) {
   }
   return c;
 }
-const dietName = (k) => ({ vegetarisch: "Vegetarisch", streng: "Streng veggie", vegan: "Vegan" }[k] || "");
+const dietName = (k) => ({ pesce: "Pescetarisch", vegetarisch: "Vegetarisch", streng: "Vegetarisch", vegan: "Vegan" }[k] || "");
 
 // ---------- Satz fürs Personal ----------
 function isJapanese() {
@@ -373,7 +376,8 @@ function askText(d) {
   const m = (current && current.meta) || {};
   const name = d.jp || d.de;
   if (!isJapanese() && m.ask_local) return { local: `${name}\n${m.ask_local}`, de: m.ask_de || "", lang: m.lang };
-  return { local: `「${name}」\n${ASK_JP}`, de: ASK_DE, lang: "ja" };
+  const q = ASK[diet()] || ASK.pesce;
+  return { local: `「${name}」\n${q.jp}`, de: q.de, lang: "ja" };
 }
 function showBig(jp, de, lang) {
   $("bigText").textContent = jp;
@@ -443,7 +447,7 @@ function openHistory() {
     const m = e.meta || {};
     const c = { veg: 0, ask: 0, no: 0 }; (e.dishes || []).forEach((d) => { c[norm(d.status)]++; });
     b.append(el("b", null, m.restaurant || "Speisekarte"));
-    b.append(el("span", null, `${new Date(e.ts).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} · ${c.veg} veggie · ${c.ask} nachfragen · ${c.no} nicht`));
+    b.append(el("span", null, `${new Date(e.ts).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} · ${c.veg} passt · ${c.ask} nachfragen · ${c.no} passt nicht`));
     b.onclick = () => { current = e; filter = "all"; render(); $("history").close(); setStatus(""); $("results").scrollIntoView({ block: "start" }); };
     li.append(b); list.append(li);
   });
@@ -460,7 +464,9 @@ $("clearHistory").onclick = () => { store.del("history"); openHistory(); };
 $("go").onclick = () => (settings().apiKey ? scan() : openSettings());
 $("stop").onclick = () => { if (ctl) ctl.abort(); };
 
-const savedDiet = store.get("diet", "vegetarisch");
+let savedDiet = store.get("diet", "pesce");
+if (savedDiet === "streng") savedDiet = "vegetarisch";
+if (!PHRASES[savedDiet]) savedDiet = "pesce";
 const radio = document.querySelector(`input[name="diet"][value="${savedDiet}"]`);
 if (radio) radio.checked = true;
 renderPhrase();
