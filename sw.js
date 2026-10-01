@@ -1,5 +1,5 @@
-// Offline-Hülle: App-Dateien werden gecacht, Anfragen an Claude gehen immer ins Netz.
-const VERSION = "menu-v5";
+// Offline shell: app files are cached, requests to Claude always go to the network.
+const VERSION = "menu-v6";
 const SHELL = [
   "./",
   "./index.html",
@@ -28,7 +28,7 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   if (url.hostname === "api.anthropic.com") return;
 
-  // Schriften: einmal laden, dann aus dem Cache
+  // Fonts: load once, then serve from cache
   if (url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com") {
     e.respondWith(
       caches.open(VERSION + "-fonts").then(async (c) => {
@@ -44,7 +44,7 @@ self.addEventListener("fetch", (e) => {
 
   if (url.origin !== location.origin) return;
 
-  // App-Dateien: zuerst Netz (damit Updates ankommen), sonst Cache
+  // App files: network first (so updates arrive), cache as fallback
   e.respondWith(
     fetch(e.request)
       .then((res) => {

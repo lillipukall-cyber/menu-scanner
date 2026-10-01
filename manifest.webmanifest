@@ -1,8 +1,8 @@
 {
-  "name": "Menü-Scanner",
-  "short_name": "Menü",
-  "description": "Speisekarten fotografieren, übersetzen und sehen, was vegetarisch ist.",
-  "lang": "de",
+  "name": "Menu Scanner",
+  "short_name": "Menu",
+  "description": "Snap a menu, translate it and see which dishes fit your diet.",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

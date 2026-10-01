@@ -1,6 +1,6 @@
 # Menu Scanner
 
-Snap a photo of a restaurant menu, get an instant German translation, and see which dishes fit your diet (pescetarian, vegetarian or vegan) and which are worth asking about. Built for Japan first (hello, hidden dashi), but it reads menus in any language.
+Snap a photo of a restaurant menu, get an instant English translation, and see which dishes fit your diet (vegetarian, pescatarian or vegan) and which are worth asking about. Built for Japan first (hello, hidden dashi), but it reads menus in any language.
 
 ## What it does
 
@@ -8,7 +8,7 @@ Snap a photo of a restaurant menu, get an instant German translation, and see wh
 - **Traffic light per dish:** vegetarian / ask the staff / not vegetarian, with a short reason and the hidden ingredients to watch for (fish stock, fish sauce, lard, gelatine …).
 - **Venue verdict:** one line on whether you can eat well here at all, e.g. a hint to request a vegetarian course when booking a kaiseki dinner.
 - **Show the staff:** a polite sentence about your diet, plus a per-dish question, written in the local language of the country (Japanese, Thai, Korean, Italian …). Opens full-screen so you can hold up your phone.
-- **Diet modes:** pescetarian (fish and dashi OK, no meat or meat broth), vegetarian (no fish, no fish stock), vegan.
+- **Diet modes:** vegetarian (no meat, no fish, no fish stock), pescatarian (fish and dashi OK, no meat or meat broth), vegan.
 - **History:** your last 25 scans stay on the device.
 - **Glossary** of hidden ingredients in Japanese cooking.
 

@@ -7,7 +7,7 @@ const MAX_IMAGES = 5;
 const MAX_EDGE = 1800;
 const HISTORY_MAX = 25;
 
-// ---------- Speicher (nur auf diesem Gerät) ----------
+// ---------- Storage (this device only) ----------
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
@@ -18,53 +18,53 @@ const settings = () => ({
   model: store.get("model", "claude-sonnet-5")
 });
 
-// ---------- Texte ----------
+// ---------- Texts ----------
 const PHRASES = {
-  pesce: { jp: "私はペスカタリアンです。肉（牛肉・豚肉・鶏肉）は食べられませんが、魚とだしは大丈夫です。", de: "Ich esse pescetarisch: kein Fleisch (Rind, Schwein, Huhn), aber Fisch und Dashi sind okay." },
-  vegetarisch: { jp: "私はベジタリアンです。肉、魚、鰹節やだし（魚のスープ）も食べられません。昆布だしは大丈夫です。", de: "Ich bin Vegetarier:in. Kein Fleisch, kein Fisch, auch keine Bonito-Flocken oder Fisch-Dashi. Kombu-Dashi ist okay." },
-  vegan: { jp: "私はヴィーガンです。肉、魚、だし、卵、乳製品は食べられません。", de: "Ich bin Veganer:in. Kein Fleisch, Fisch, Dashi, Ei oder Milchprodukte." }
+  vegetarisch: { jp: "私はベジタリアンです。肉（鶏肉、牛肉など、どんな動物の肉も）、魚、鰹節やだし（魚のスープ）も食べられません。昆布だしは大丈夫です。", en: "I'm vegetarian. I don't eat meat (chicken, beef, any animal), fish, bonito flakes or fish-based dashi. Kombu dashi is fine." },
+  pesce: { jp: "私はペスカタリアンです。肉（鶏肉、牛肉、豚肉など、どんな動物の肉も）は食べられませんが、魚とだしは大丈夫です。", en: "I'm pescatarian. I don't eat meat (chicken, beef, pork, any animal), but fish and dashi are fine." },
+  vegan: { jp: "私はヴィーガンです。肉（鶏肉、牛肉など、どんな動物の肉も）、魚、だし、卵、乳製品は食べられません。", en: "I'm vegan. I don't eat meat (chicken, beef, any animal), fish, dashi, eggs or dairy." }
 };
 const ASK = {
-  pesce: { jp: "この料理に肉や肉のスープ（豚骨・鶏ガラなど）は入っていますか？", de: "„Enthält dieses Gericht Fleisch oder Fleischbrühe (Schwein, Huhn)?“" },
-  vegetarisch: { jp: "この料理に肉、魚、またはだし（鰹節）は入っていますか？", de: "„Enthält dieses Gericht Fleisch, Fisch oder Dashi (Bonito)?“" },
-  vegan: { jp: "この料理に肉、魚、だし、卵、乳製品は入っていますか？", de: "„Enthält dieses Gericht Fleisch, Fisch, Dashi, Ei oder Milchprodukte?“" }
+  vegetarisch: { jp: "この料理に肉、魚、またはだし（鰹節）は入っていますか？", en: "“Does this dish contain meat, fish or dashi (bonito)?”" },
+  pesce: { jp: "この料理に肉や肉のスープ（豚骨・鶏ガラなど）は入っていますか？", en: "“Does this dish contain meat or meat broth (pork, chicken)?”" },
+  vegan: { jp: "この料理に肉、魚、だし、卵、乳製品は入っていますか？", en: "“Does this dish contain meat, fish, dashi, eggs or dairy?”" }
 };
-const LABEL = { veg: "Passt", ask: "Nachfragen", no: "Passt nicht" };
-const VENUE_LABEL = { veg: "Gut geeignet. ", ask: "Eingeschränkt. ", no: "Schwierig. " };
+const LABEL = { veg: "OK for you", ask: "Ask first", no: "Not OK" };
+const VENUE_LABEL = { veg: "Good fit. ", ask: "Limited. ", no: "Difficult. " };
 const DIET_RULES = {
-  pesce: "Die Person isst pescetarisch: kein Fleisch und kein Geflügel, auch keine Fleisch- oder Hühnerbrühe (z. B. Tonkotsu, Torigara), kein Schmalz, keine Gelatine. Fisch, Meeresfrüchte, Dashi, Fischsauce, Eier und Milch sind ok. Wenn ein Gericht wahrscheinlich Fleischbrühe, Schmalz oder kleine Fleischstücke enthält (z. B. Ramen, Gyoza, Chāhan, Okonomiyaki mit Schwein), markiere es als \"ask\".",
-  vegetarisch: "Die Person isst vegetarisch: kein Fleisch, kein Fisch, keine Meeresfrüchte und keine versteckten tierischen Zutaten (Fisch- oder Fleischbrühe wie Bonito-Dashi, Fischsauce, Garnelenpaste, Austernsauce, Sardellen, Schmalz, Gelatine). Eier und Milch sind ok. Reine Algen- oder Gemüsebrühe ist ok. Wenn ein Gericht so etwas nur wahrscheinlich enthält, markiere es als \"ask\".",
-  vegan: "Die Person isst vegan: keine tierischen Produkte, also auch kein Ei, keine Milchprodukte, kein Honig und keine versteckten tierischen Zutaten (Fisch- oder Fleischbrühe, Fischsauce, Garnelenpaste, Austernsauce, Sardellen, Schmalz, Gelatine, Ghee)."
+  vegetarisch: "The person is vegetarian: no meat of any animal, no fish, no seafood, and no hidden animal ingredients (fish or meat stock such as bonito dashi, fish sauce, shrimp paste, oyster sauce, anchovies, lard, gelatine). Eggs and dairy are fine. Pure seaweed or vegetable stock is fine. If a dish probably contains one of these, mark it \"ask\".",
+  pesce: "The person is pescatarian: no meat or poultry of any animal, no meat or chicken stock (e.g. tonkotsu, torigara), no lard, no gelatine. Fish, seafood, dashi, fish sauce, eggs and dairy are fine. If a dish probably contains meat stock, lard or small pieces of meat (e.g. ramen, gyoza, chāhan, okonomiyaki with pork), mark it \"ask\".",
+  vegan: "The person is vegan: no animal products at all, so also no eggs, dairy or honey, and no hidden animal ingredients (fish or meat stock, fish sauce, shrimp paste, oyster sauce, anchovies, lard, gelatine, ghee)."
 };
-const DIET_NAME_PROMPT = { pesce: "pescetarisch (kein Fleisch und keine Fleischbrühe, aber Fisch, Meeresfrüchte und Fischbrühe sind ok)", vegetarisch: "vegetarisch (Ei und Milch ok, aber kein Fisch und keine Fisch- oder Fleischbrühe)", vegan: "vegan" };
+const DIET_NAME_PROMPT = { vegetarisch: "vegetarian (eggs and dairy fine, but no fish and no fish or meat stock)", pesce: "pescatarian (no meat and no meat stock, but fish, seafood and fish stock are fine)", vegan: "vegan" };
 
 function buildPrompt(diet) {
-  return `Du bist Experte für internationale Küche und hilfst Reisenden im Restaurant. Die Fotos zeigen eine Speisekarte in irgendeiner Sprache (oft Japanisch, aber auch Chinesisch, Koreanisch, Thai, Italienisch usw.), gedruckt oder handschriftlich auf einer Tafel. Mehrere Fotos sind Seiten derselben Karte.
+  return `You are an expert in international cuisine helping travellers in restaurants. The photos show a menu in any language (often Japanese, but also Chinese, Korean, Thai, Italian, etc.), printed or handwritten on a board. Several photos are pages of the same menu.
 
-Aufgabe: Erfasse jedes lesbare Gericht (erfinde keine). Übersetze es ins Deutsche und bewerte es für diese Ernährung:
+Task: list every readable dish (do not invent any). Translate it into English and assess it for this diet:
 ${DIET_RULES[diet]}
 
-Denke an die typischen versteckten Zutaten der jeweiligen Küche, zum Beispiel:
-Japan: Dashi (Bonito) in Miso-Suppe, Udon, Soba, Nimono, Chawanmushi, Tempura-Dip, Mentsuyu, Agedashi; Katsuobushi-Topping; Schmalz oder Hühnerbrühe in Ramen, Gyoza, Chāhan.
-China/Taiwan: Austernsauce, Schmalz, Hühnerbrühe, Hackfleisch in Gemüsegerichten (z. B. Mapo Tofu, Auberginen).
-Korea: Sardellenbrühe in Suppen und Eintöpfen, Fischsauce und Garnelen im Kimchi.
-Südostasien: Fischsauce, Garnelenpaste, getrocknete Garnelen.
-Europa: Sardellen, Speck oder Fleischbrühe in Saucen, Suppen und Risotto, Gelatine in Desserts, Käse mit tierischem Lab (bei vegetarisch nur als Hinweis).
-Bei Kursmenüs (Kaiseki, Omakase, Degustation) ist jeder Gang ein Eintrag. Bei Sets (Teishoku, Bentō, Menü) nenne im Grund die üblichen Beilagen. Getränke nur aufnehmen, wenn sie für die Ernährung relevant sind.
-status: "veg" = passt sicher, "ask" = passt wahrscheinlich oder unklar, beim Personal nachfragen, "no" = enthält eindeutig Ungeeignetes.
-Wenn eine Stelle schwer lesbar ist, schreibe deine beste Lesung und vermerke die Unsicherheit im Grund.
+Think about the typical hidden ingredients of each cuisine, for example:
+Japan: dashi (bonito) in miso soup, udon, soba, nimono, chawanmushi, tempura dip, mentsuyu, agedashi; katsuobushi topping; lard or chicken stock in ramen, gyoza, chāhan.
+China/Taiwan: oyster sauce, lard, chicken stock, minced meat in vegetable dishes (e.g. mapo tofu, aubergine).
+Korea: anchovy stock in soups and stews, fish sauce and shrimp in kimchi.
+Southeast Asia: fish sauce, shrimp paste, dried shrimp.
+Europe: anchovies, bacon or meat stock in sauces, soups and risotto, gelatine in desserts, cheese with animal rennet (for vegetarians only as a note).
+For course menus (kaiseki, omakase, tasting menu) each course is one entry. For sets (teishoku, bentō, set menu) mention the usual sides in the reason. Only include drinks if they matter for the diet.
+status: "veg" = definitely fits, "ask" = probably fits or unclear, ask the staff, "no" = clearly contains something unsuitable.
+If something is hard to read, give your best reading and note the uncertainty in the reason.
 
-Personal-Sprache: Bestimme die Sprache, in der man das Personal ansprechen sollte. Das ist meist die Landessprache, nicht unbedingt die Sprache der Karte (eine englische Touristenkarte in Japan heißt trotzdem Japanisch). Schreibe darin höflich und natürlich, so wie ein Muttersprachler es sagen würde.
+Staff language: decide which language to use with the staff. This is usually the local language of the country, not necessarily the language of the menu (an English tourist menu in Japan still means Japanese). Write in it politely and naturally, the way a native speaker would. When saying what the person cannot eat, spell out meat explicitly, like "meat (chicken, beef, any animal)".
 
-AUSGABEFORMAT: Newline-delimited JSON. Jede Zeile ist genau ein JSON-Objekt. Kein anderer Text, keine Code-Blöcke.
-Zeile 1:
-{"type":"meta","restaurant":"Art des Lokals auf Deutsch (z. B. Izakaya, Ramen, Trattoria, Garküche)","language":"Sprache der Karte auf Deutsch","staff_language":"Sprache fürs Personal auf Deutsch, z. B. Japanisch","lang":"BCP-47-Code der Personal-Sprache, z. B. ja, zh-TW, ko, th, it","phrase_local":"1 bis 2 kurze höfliche Sätze in der Personal-Sprache: Ich esse ${DIET_NAME_PROMPT[diet]} und genau, was ich nicht essen kann, inklusive der landestypischen versteckten Zutaten","phrase_de":"deutsche Übersetzung von phrase_local","ask_local":"eine kurze höfliche Frage in der Personal-Sprache, ob dieses Gericht die für diese Ernährung kritischen Zutaten enthält (landestypisch konkret, z. B. Fischsauce)","ask_de":"deutsche Übersetzung von ask_local","venue":{"status":"veg|ask|no","text":"1 Satz: Kann man hier mit dieser Ernährung gut essen? Bei festen Kursmenüs Hinweis, die Ernährung schon bei der Reservierung anzugeben."},"summary":"1 bis 2 Sätze: was hier am besten passt oder was man bestellen könnte"}
-Danach pro Gericht eine Zeile, zuerst alle "veg", dann "ask", dann "no":
-{"type":"dish","jp":"Originalname wie auf der Karte","romaji":"Umschrift in lateinischer Schrift (leer, wenn die Karte schon lateinisch ist)","de":"deutscher Name","desc":"kurze Beschreibung, höchstens 12 Wörter","price":"Preis wie auf der Karte oder leer","status":"veg|ask|no","reason":"kurzer Grund, bei ask genau was zu klären ist","hidden":["versteckte Zutat im Original + Deutsch"]}
-Wenn keine Speisekarte lesbar ist: nur die meta-Zeile, und in summary steht warum.`;
+OUTPUT FORMAT: newline-delimited JSON. Every line is exactly one JSON object. No other text, no code fences.
+Line 1:
+{"type":"meta","restaurant":"type of place in English (e.g. izakaya, ramen shop, trattoria, street food stall)","language":"language of the menu in English","staff_language":"language for the staff in English, e.g. Japanese","lang":"BCP-47 code of the staff language, e.g. ja, zh-TW, ko, th, it","phrase_local":"1 to 2 short polite sentences in the staff language: I am ${DIET_NAME_PROMPT[diet]}, and exactly what I cannot eat, including the hidden ingredients typical for this country","phrase_en":"English translation of phrase_local","ask_local":"a short polite question in the staff language asking whether this dish contains the ingredients critical for this diet (concrete for this cuisine, e.g. fish sauce)","ask_en":"English translation of ask_local","venue":{"status":"veg|ask|no","text":"1 sentence: can you eat well here with this diet? For fixed course menus, suggest mentioning the diet when booking."},"summary":"1 to 2 sentences: what fits best here or what to order"}
+Then one line per dish, first all "veg", then "ask", then "no":
+{"type":"dish","jp":"original name as on the menu","romaji":"romanisation (empty if the menu is already in Latin script)","en":"English name","desc":"short description, at most 12 words","price":"price as on the menu or empty","status":"veg|ask|no","reason":"short reason; for ask, exactly what to check","hidden":["hidden ingredient in the original + English"]}
+If no menu is readable: only the meta line, with the reason in summary.`;
 }
 
-// ---------- Zustand ----------
+// ---------- State ----------
 let photos = [];          // [{blob, url}]
 let current = null;       // {meta, dishes, ts, diet, model, sample?}
 let filter = "all";
@@ -72,7 +72,7 @@ let ctl = null;
 
 const diet = () => (document.querySelector('input[name="diet"]:checked') || {}).value || "vegetarisch";
 
-// ---------- DOM-Helfer ----------
+// ---------- DOM helpers ----------
 function el(tag, cls, text) {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -93,14 +93,14 @@ function refreshSetup() {
 }
 function updateGo() {
   $("go").disabled = !!ctl || !photos.length;
-  $("go").textContent = settings().apiKey ? "Karte analysieren" : "Karte analysieren (Schlüssel fehlt)";
+  $("go").textContent = settings().apiKey ? "Analyse menu" : "Analyse menu (API key missing)";
 }
 
-// ---------- Fotos ----------
+// ---------- Photos ----------
 function addFiles(list) {
   const imgs = Array.from(list || []).filter((f) => /^image\//.test(f.type) || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));
   for (const f of imgs) {
-    if (photos.length >= MAX_IMAGES) { setStatus(`Höchstens ${MAX_IMAGES} Fotos pro Scan.`, "err"); break; }
+    if (photos.length >= MAX_IMAGES) { setStatus(`At most ${MAX_IMAGES} photos per scan.`, "err"); break; }
     photos.push({ blob: f, url: URL.createObjectURL(f) });
   }
   renderThumbs();
@@ -110,14 +110,14 @@ function renderThumbs() {
   t.replaceChildren();
   photos.forEach((p, i) => {
     const w = el("div", "thumb");
-    const im = new Image(); im.src = p.url; im.alt = `Seite ${i + 1}`;
-    const x = el("button", null, "✕"); x.type = "button"; x.setAttribute("aria-label", `Seite ${i + 1} entfernen`);
+    const im = new Image(); im.src = p.url; im.alt = `Page ${i + 1}`;
+    const x = el("button", null, "✕"); x.type = "button"; x.setAttribute("aria-label", `Remove page ${i + 1}`);
     x.onclick = () => { URL.revokeObjectURL(p.url); photos.splice(i, 1); renderThumbs(); };
     w.append(im, x); t.append(w);
   });
   $("pickHint").textContent = photos.length
-    ? `${photos.length} ${photos.length === 1 ? "Seite" : "Seiten"} bereit. Weitere Seiten einfach dazufotografieren.`
-    : `Mehrere Seiten? Einfach nacheinander fotografieren, bis zu ${MAX_IMAGES}.`;
+    ? `${photos.length} ${photos.length === 1 ? "page" : "pages"} ready. Add more pages by taking another photo.`
+    : `Several pages? Take one photo after another, up to ${MAX_IMAGES}.`;
   updateGo();
 }
 $("camInput").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
@@ -128,7 +128,7 @@ function loadImage(blob) {
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => { URL.revokeObjectURL(url); res(img); };
-    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("Foto konnte nicht geöffnet werden.")); };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("Could not open the photo.")); };
     img.src = url;
   });
 }
@@ -144,7 +144,7 @@ async function toJpeg(blob, maxEdge, quality) {
   return c.toDataURL("image/jpeg", quality);
 }
 
-// ---------- Claude-Anfrage (Streaming) ----------
+// ---------- Claude request (streaming) ----------
 async function scan() {
   const { apiKey, model } = settings();
   if (!apiKey) { openSettings(); return; }
@@ -153,7 +153,7 @@ async function scan() {
   ctl = new AbortController();
   $("stop").hidden = false;
   updateGo();
-  setStatus("Fotos werden vorbereitet …", "busy");
+  setStatus("Preparing photos …", "busy");
 
   const d = diet();
   current = { meta: null, dishes: [], ts: Date.now(), diet: d, model, streaming: true };
@@ -169,7 +169,7 @@ async function scan() {
     const content = images.map((u) => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: u.split(",")[1] } }));
     content.push({ type: "text", text: buildPrompt(d) });
 
-    setStatus("Claude liest die Karte …", "busy");
+    setStatus("Claude is reading the menu …", "busy");
     const res = await fetch(API_URL, {
       method: "POST",
       signal: ctl.signal,
@@ -193,8 +193,8 @@ async function scan() {
       if (!line.startsWith("{")) return;
       let obj; try { obj = JSON.parse(line); } catch { return; }
       if (obj.type === "meta") { current.meta = obj; render(); }
-      else if (obj.type === "dish" || obj.jp || obj.de) { current.dishes.push(obj); appendDish(obj); updateHead(); }
-      setStatus(`Claude liest die Karte … ${current.dishes.length} ${current.dishes.length === 1 ? "Gericht" : "Gerichte"} bisher`, "busy");
+      else if (obj.type === "dish" || obj.jp || obj.en) { current.dishes.push(obj); appendDish(obj); updateHead(); }
+      setStatus(`Claude is reading the menu … ${current.dishes.length} ${current.dishes.length === 1 ? "dish" : "dishes"} so far`, "busy");
     };
 
     for (;;) {
@@ -221,7 +221,7 @@ async function scan() {
     }
     if (lineBuf.trim()) eatLine(lineBuf);
 
-    if (!current.meta && !current.dishes.length) throw new Error("Claude hat keine auswertbare Antwort geliefert. Versuch es mit einem schärferen Foto noch einmal.");
+    if (!current.meta && !current.dishes.length) throw new Error("Claude did not return a usable answer. Try again with a sharper photo.");
 
     const order = { veg: 0, ask: 1, no: 2 };
     current.dishes.sort((a, b) => (order[a.status] ?? 1) - (order[b.status] ?? 1));
@@ -232,17 +232,17 @@ async function scan() {
 
     const n = current.dishes.length;
     setStatus(n
-      ? `Fertig. ${n} ${n === 1 ? "Gericht" : "Gerichte"} erkannt.` + (truncated ? " Die Karte war sehr lang, einige Gerichte fehlen eventuell." : "")
-      : (current.meta && current.meta.summary) || "Keine Gerichte erkannt.");
-    // Fotos nach erfolgreichem Scan leeren, damit die nächste Karte frisch startet
+      ? `Done. ${n} ${n === 1 ? "dish" : "dishes"} found.` + (truncated ? " The menu was very long, some dishes may be missing." : "")
+      : (current.meta && current.meta.summary) || "No dishes found.");
+    // Clear photos after a successful scan so the next menu starts fresh
     photos.forEach((p) => URL.revokeObjectURL(p.url));
     photos = [];
     renderThumbs();
   } catch (e) {
     if (e && e.name === "AbortError") {
-      setStatus(current.dishes.length ? "Gestoppt. Die bisher erkannten Gerichte bleiben sichtbar." : "Gestoppt.");
+      setStatus(current.dishes.length ? "Stopped. The dishes found so far stay visible." : "Stopped.");
     } else {
-      setStatus((e && e.message) || "Etwas ist schiefgelaufen. Versuch es noch einmal.", "err");
+      setStatus((e && e.message) || "Something went wrong. Please try again.", "err");
     }
     if (current) { current.streaming = false; render(); }
   } finally {
@@ -255,20 +255,20 @@ async function scan() {
 async function apiError(res) {
   let type = "", msg = "";
   try { const j = await res.json(); type = j.error && j.error.type; msg = j.error && j.error.message; } catch {}
-  if (res.status === 401) return new Error("Der API-Schlüssel wird nicht akzeptiert. Prüfe ihn in den Einstellungen.");
-  if (res.status === 403) return new Error("Der Schlüssel hat keine Berechtigung für dieses Modell. Wähle in den Einstellungen ein anderes.");
-  if (res.status === 404) return new Error("Dieses Modell ist nicht verfügbar. Wähle in den Einstellungen ein anderes.");
-  if (res.status === 413) return new Error("Die Fotos sind zu groß. Nimm weniger Seiten auf einmal.");
-  if (res.status === 400 && /credit|balance/i.test(msg)) return new Error("Dein API-Guthaben ist aufgebraucht. Lade es auf console.anthropic.com auf.");
+  if (res.status === 401) return new Error("The API key was not accepted. Check it in Settings.");
+  if (res.status === 403) return new Error("This key has no access to this model. Pick another one in Settings.");
+  if (res.status === 404) return new Error("This model is not available. Pick another one in Settings.");
+  if (res.status === 413) return new Error("The photos are too large. Use fewer pages at once.");
+  if (res.status === 400 && /credit|balance/i.test(msg)) return new Error("Your API credit is used up. Top it up at console.anthropic.com.");
   return friendly(type, msg, res.status);
 }
 function friendly(type, msg, status) {
-  if (type === "rate_limit_error" || status === 429) return new Error("Zu viele Anfragen in kurzer Zeit. Warte eine Minute und versuch es erneut.");
-  if (type === "overloaded_error" || status === 529) return new Error("Claude ist gerade stark ausgelastet. Versuch es gleich noch einmal.");
-  return new Error("Fehler von Claude" + (status ? ` (${status})` : "") + (msg ? `: ${msg}` : "."));
+  if (type === "rate_limit_error" || status === 429) return new Error("Too many requests in a short time. Wait a minute and try again.");
+  if (type === "overloaded_error" || status === 529) return new Error("Claude is very busy right now. Try again in a moment.");
+  return new Error("Error from Claude" + (status ? ` (${status})` : "") + (msg ? `: ${msg}` : "."));
 }
 
-// ---------- Ergebnis anzeigen ----------
+// ---------- Results ----------
 function counts() {
   const c = { veg: 0, ask: 0, no: 0 };
   (current ? current.dishes : []).forEach((d) => { if (c[norm(d.status)] != null) c[norm(d.status)]++; });
@@ -287,7 +287,7 @@ function render() {
   const list = el("div", "results"); list.id = "dishList";
   r.append(list);
   current.dishes.filter((d) => filter === "all" || norm(d.status) === filter).forEach((d) => list.append(dishCard(d, false)));
-  if (!current.streaming && current.dishes.length && !list.children.length) list.append(el("p", "empty", "Keine Gerichte in dieser Kategorie."));
+  if (!current.streaming && current.dishes.length && !list.children.length) list.append(el("p", "empty", "No dishes in this category."));
 }
 
 function updateHead() {
@@ -295,9 +295,9 @@ function updateHead() {
   if (!head || !current) return;
   head.replaceChildren();
   const m = current.meta || {};
-  const when = new Date(current.ts).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const when = new Date(current.ts).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
   head.append(el("span", "meta", [when, m.language, dietName(current.diet)].filter(Boolean).join(" · ")));
-  head.append(el("h2", null, (m.restaurant ? m.restaurant + " · " : "") + current.dishes.length + (current.dishes.length === 1 ? " Gericht" : " Gerichte")));
+  head.append(el("h2", null, (m.restaurant ? m.restaurant + " · " : "") + current.dishes.length + (current.dishes.length === 1 ? " dish" : " dishes")));
   if (m.venue && m.venue.text) {
     const vs = norm(m.venue.status);
     const v = el("div", "venue " + vs);
@@ -308,7 +308,7 @@ function updateHead() {
   if (current.dishes.length) {
     const c = counts();
     const tally = el("div", "tally");
-    [["all", "Alle", current.dishes.length], ["veg", "Passt", c.veg], ["ask", "Nachfragen", c.ask], ["no", "Passt nicht", c.no]].forEach(([k, l, n]) => {
+    [["all", "All", current.dishes.length], ["veg", "OK", c.veg], ["ask", "Ask first", c.ask], ["no", "Not OK", c.no]].forEach(([k, l, n]) => {
       const b = el("button", "chip" + (k === "all" ? "" : " " + k)); b.type = "button";
       b.setAttribute("aria-pressed", String(filter === k));
       if (k !== "all") b.append(el("i"));
@@ -329,10 +329,11 @@ function dishCard(d, animate) {
   const st = norm(d.status);
   const c = el("article", "dish " + st + (animate ? " enter" : ""));
   const left = el("div");
-  left.append(el("div", "jp", d.jp || d.de || ""));
+  const en = d.en || d.de || "";
+  left.append(el("div", "jp", d.jp || en));
   if (d.romaji) left.append(el("div", "romaji", d.romaji));
   c.append(left, el("div", "price", d.price || ""));
-  if (d.de && d.de !== d.jp) c.append(el("div", "de", d.de));
+  if (en && en !== d.jp) c.append(el("div", "de", en));
   if (d.desc) c.append(el("div", "desc", d.desc));
   const v = el("div", "verdict");
   v.append(el("b", null, LABEL[st]));
@@ -344,15 +345,15 @@ function dishCard(d, animate) {
   }
   c.append(v);
   if (st === "ask") {
-    const a = el("button", "askbtn", "Beim Personal nachfragen"); a.type = "button";
-    a.onclick = () => { const t = askText(d); showBig(t.local, t.de, t.lang); };
+    const a = el("button", "askbtn", "Ask the staff"); a.type = "button";
+    a.onclick = () => { const t = askText(d); showBig(t.local, t.en, t.lang); };
     c.append(a);
   }
   return c;
 }
-const dietName = (k) => ({ pesce: "Pescetarisch", vegetarisch: "Vegetarisch", streng: "Vegetarisch", vegan: "Vegan" }[k] || "");
+const dietName = (k) => ({ pesce: "Pescatarian", vegetarisch: "Vegetarian", streng: "Vegetarian", vegan: "Vegan" }[k] || "");
 
-// ---------- Satz fürs Personal ----------
+// ---------- Phrase for the staff ----------
 function isJapanese() {
   const m = current && current.meta;
   return !m || !m.lang || /^ja/i.test(m.lang);
@@ -360,29 +361,29 @@ function isJapanese() {
 function renderPhrase() {
   const m = (current && current.meta) || {};
   const ja = isJapanese();
-  let local, de, lang = ja ? "ja" : m.lang, ok = true;
-  if (ja) { local = PHRASES[diet()].jp; de = PHRASES[diet()].de; }
-  else if (current.diet === diet() && m.phrase_local) { local = m.phrase_local; de = m.phrase_de || ""; }
-  else { ok = false; local = ""; de = `Scanne die Karte mit dieser Ernährung erneut, dann erscheint der passende Satz auf ${m.staff_language || "der Landessprache"}.`; }
-  $("phraseLabel").textContent = "Dem Personal zeigen · " + (ja ? "Japanisch" : (m.staff_language || m.language || ""));
+  let local, en, lang = ja ? "ja" : m.lang, ok = true;
+  if (ja) { local = PHRASES[diet()].jp; en = PHRASES[diet()].en; }
+  else if (current.diet === diet() && m.phrase_local) { local = m.phrase_local; en = m.phrase_en || m.phrase_de || ""; }
+  else { ok = false; local = ""; en = `Scan the menu again with this diet to get the matching sentence in ${m.staff_language || "the local language"}.`; }
+  $("phraseLabel").textContent = "Show the staff · " + (ja ? "Japanese" : (m.staff_language || m.language || ""));
   $("phraseJp").textContent = local;
   $("phraseJp").lang = lang || "";
   $("phraseJp").hidden = !ok;
-  $("phraseDe").textContent = de;
+  $("phraseDe").textContent = en;
   $("bigBtn").hidden = $("copyBtn").hidden = !ok;
   $("glossBox").hidden = !ja;
 }
 function askText(d) {
   const m = (current && current.meta) || {};
-  const name = d.jp || d.de;
-  if (!isJapanese() && m.ask_local) return { local: `${name}\n${m.ask_local}`, de: m.ask_de || "", lang: m.lang };
-  const q = ASK[diet()] || ASK.pesce;
-  return { local: `「${name}」\n${q.jp}`, de: q.de, lang: "ja" };
+  const name = d.jp || d.en || d.de;
+  if (!isJapanese() && m.ask_local) return { local: `${name}\n${m.ask_local}`, en: m.ask_en || m.ask_de || "", lang: m.lang };
+  const q = ASK[diet()] || ASK.vegetarisch;
+  return { local: `「${name}」\n${q.jp}`, en: q.en, lang: "ja" };
 }
-function showBig(jp, de, lang) {
-  $("bigText").textContent = jp;
+function showBig(local, en, lang) {
+  $("bigText").textContent = local;
   $("bigText").lang = lang || "";
-  $("bigSmall").textContent = de;
+  $("bigSmall").textContent = en;
   $("overlay").hidden = false;
   $("closeBig").focus();
 }
@@ -391,8 +392,8 @@ $("bigBtn").onclick = () => showBig($("phraseJp").textContent, $("phraseDe").tex
 $("copyBtn").onclick = async () => {
   try {
     await navigator.clipboard.writeText($("phraseJp").textContent);
-    $("copyBtn").textContent = "Kopiert";
-    setTimeout(() => { $("copyBtn").textContent = "Kopieren"; }, 1500);
+    $("copyBtn").textContent = "Copied";
+    setTimeout(() => { $("copyBtn").textContent = "Copy"; }, 1500);
   } catch {
     const s = getSelection(), r = document.createRange();
     r.selectNodeContents($("phraseJp")); s.removeAllRanges(); s.addRange(r);
@@ -401,7 +402,7 @@ $("copyBtn").onclick = async () => {
 document.querySelectorAll('input[name="diet"]').forEach((i) => i.addEventListener("change", () => { store.set("diet", diet()); renderPhrase(); }));
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("overlay").hidden = true; });
 
-// ---------- Einstellungen ----------
+// ---------- Settings ----------
 function openSettings() {
   const s = settings();
   $("apiKey").value = s.apiKey;
@@ -418,18 +419,18 @@ $("settingsForm").addEventListener("submit", (e) => {
     const key = $("apiKey").value.trim();
     if (key && !/^sk-ant-/.test(key)) {
       e.preventDefault();
-      $("settingsMsg").textContent = "Das sieht nicht nach einem Claude-Schlüssel aus. Er beginnt mit „sk-ant-“.";
+      $("settingsMsg").textContent = "That does not look like a Claude API key. It starts with “sk-ant-”.";
       return;
     }
     store.set("apiKey", key);
     store.set("model", $("model").value);
     refreshSetup();
-    setStatus(key ? "Gespeichert. Du kannst loslegen." : "");
+    setStatus(key ? "Saved. You are ready to scan." : "");
   }
 });
-$("clearKey").onclick = () => { store.del("apiKey"); $("apiKey").value = ""; $("settingsMsg").textContent = "Schlüssel gelöscht."; refreshSetup(); };
+$("clearKey").onclick = () => { store.del("apiKey"); $("apiKey").value = ""; $("settingsMsg").textContent = "Key deleted."; refreshSetup(); };
 
-// ---------- Verlauf ----------
+// ---------- History ----------
 function saveHistory(entry) {
   const h = store.get("history", []);
   const { streaming, ...clean } = entry;
@@ -441,13 +442,13 @@ function openHistory() {
   const list = $("histList");
   list.replaceChildren();
   const h = store.get("history", []);
-  if (!h.length) list.append(el("li", "empty", "Noch keine Scans."));
+  if (!h.length) list.append(el("li", "empty", "No scans yet."));
   h.forEach((e) => {
     const li = el("li"), b = el("button"); b.type = "button";
     const m = e.meta || {};
     const c = { veg: 0, ask: 0, no: 0 }; (e.dishes || []).forEach((d) => { c[norm(d.status)]++; });
-    b.append(el("b", null, m.restaurant || "Speisekarte"));
-    b.append(el("span", null, `${new Date(e.ts).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} · ${c.veg} passt · ${c.ask} nachfragen · ${c.no} passt nicht`));
+    b.append(el("b", null, m.restaurant || "Menu"));
+    b.append(el("span", null, `${new Date(e.ts).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} · ${c.veg} OK · ${c.ask} ask first · ${c.no} not OK`));
     b.onclick = () => { current = e; filter = "all"; render(); $("history").close(); setStatus(""); $("results").scrollIntoView({ block: "start" }); };
     li.append(b); list.append(li);
   });
@@ -457,7 +458,7 @@ $("openHistory").onclick = openHistory;
 $("closeHistory").onclick = () => $("history").close();
 $("clearHistory").onclick = () => { store.del("history"); openHistory(); };
 
-// Tipp aufs Abdunkeln schließt die Blätter
+// Tapping the backdrop closes the sheets
 ["settings", "history"].forEach((id) => $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).close(); }));
 
 // ---------- Start ----------
