@@ -70,7 +70,7 @@ let current = null;       // {meta, dishes, ts, diet, model, sample?}
 let filter = "all";
 let ctl = null;
 
-const diet = () => (document.querySelector('input[name="diet"]:checked') || {}).value || "pesce";
+const diet = () => (document.querySelector('input[name="diet"]:checked') || {}).value || "vegetarisch";
 
 // ---------- DOM-Helfer ----------
 function el(tag, cls, text) {
@@ -464,9 +464,9 @@ $("clearHistory").onclick = () => { store.del("history"); openHistory(); };
 $("go").onclick = () => (settings().apiKey ? scan() : openSettings());
 $("stop").onclick = () => { if (ctl) ctl.abort(); };
 
-let savedDiet = store.get("diet", "pesce");
+let savedDiet = store.get("diet", "vegetarisch");
 if (savedDiet === "streng") savedDiet = "vegetarisch";
-if (!PHRASES[savedDiet]) savedDiet = "pesce";
+if (!PHRASES[savedDiet]) savedDiet = "vegetarisch";
 const radio = document.querySelector(`input[name="diet"][value="${savedDiet}"]`);
 if (radio) radio.checked = true;
 renderPhrase();

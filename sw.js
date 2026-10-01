@@ -1,5 +1,5 @@
 // Offline-Hülle: App-Dateien werden gecacht, Anfragen an Claude gehen immer ins Netz.
-const VERSION = "menu-v4";
+const VERSION = "menu-v5";
 const SHELL = [
   "./",
   "./index.html",
