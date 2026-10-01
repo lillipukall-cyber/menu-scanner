@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Menü-Scanner</title>
+<meta name="description" content="Speisekarten fotografieren, übersetzen und sehen, was vegetarisch ist.">
+<meta name="theme-color" content="#2F5233">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Menü">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Shippori+Mincho+B1:wght@600;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="label">Menü-Scanner · 献立</span>
+      <h1>Was kann ich <span>hier</span> essen?</h1>
+    </div>
+    <nav class="nav">
+      <button class="icon-btn" id="openHistory" aria-label="Verlauf">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg>
+      </button>
+      <button class="icon-btn" id="openSettings" aria-label="Einstellungen">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <section class="setup" id="setup" hidden>
+    <h2>Einmal einrichten</h2>
+    <p>Die App liest Karten mit Claude. Dafür braucht sie einen API-Schlüssel von <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Der Schlüssel bleibt nur auf diesem Gerät.</p>
+    <button class="go" id="setupBtn">Schlüssel eintragen</button>
+  </section>
+
+  <section class="scan" aria-label="Speisekarte scannen">
+    <div class="pick">
+      <label class="pick-btn primary">
+        <input type="file" id="camInput" accept="image/*" capture="environment">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>
+        <span>Foto aufnehmen</span>
+      </label>
+      <label class="pick-btn">
+        <input type="file" id="libInput" accept="image/*" multiple>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5-9 8"/></svg>
+        <span>Aus Fotos</span>
+      </label>
+    </div>
+    <div class="thumbs" id="thumbs"></div>
+    <p class="hint" id="pickHint">Mehrere Seiten? Einfach nacheinander fotografieren, bis zu 5.</p>
+
+    <div class="opts">
+      <span class="label">Ich esse</span>
+      <div class="seg" role="radiogroup" aria-label="Ernährung">
+        <input type="radio" name="diet" id="d-veg" value="vegetarisch" checked><label for="d-veg">Vegetarisch<small>Dashi ok</small></label>
+        <input type="radio" name="diet" id="d-strict" value="streng"><label for="d-strict">Streng veggie<small>kein Fisch-Dashi</small></label>
+        <input type="radio" name="diet" id="d-vegan" value="vegan"><label for="d-vegan">Vegan<small>kein Ei, Milch</small></label>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="go" id="go" disabled>Karte analysieren</button>
+      <button class="ghost" id="stop" hidden>Stopp</button>
+    </div>
+    <div class="status" id="status" role="status"></div>
+  </section>
+
+  <section class="results" id="results" aria-live="polite"></section>
+
+  <section class="phrase" aria-label="Satz fürs Personal">
+    <span class="label" id="phraseLabel">Dem Personal zeigen</span>
+    <p class="pj" id="phraseJp" dir="auto"></p>
+    <p class="pd" id="phraseDe"></p>
+    <div class="row">
+      <button id="bigBtn">Groß anzeigen</button>
+      <button id="copyBtn">Kopieren</button>
+    </div>
+  </section>
+
+  <details class="gloss-box" id="glossBox">
+    <summary>Versteckte Zutaten in Japan</summary>
+    <dl class="gloss">
+      <dt>出汁<small>dashi</small></dt><dd>Brühe, fast immer aus Bonito-Flocken (Fisch). Steckt in Miso-Suppe, Udon, Soba, Tempura-Dip, Nimono, Chawanmushi.</dd>
+      <dt>鰹節<small>katsuobushi</small></dt><dd>Getrocknete Bonito-Flocken. Oft als Topping auf Tofu, Okonomiyaki, Takoyaki, Spinat.</dd>
+      <dt>昆布出汁<small>kombu dashi</small></dt><dd>Reine Algenbrühe, vegetarisch. Danach zu fragen lohnt sich.</dd>
+      <dt>めんつゆ<small>mentsuyu</small></dt><dd>Nudelsauce aus Sojasauce und Dashi. Enthält Fisch.</dd>
+      <dt>煮干し<small>niboshi</small></dt><dd>Getrocknete Sardinen, Basis für manche Ramen- und Miso-Brühen.</dd>
+      <dt>ラード<small>rādo</small></dt><dd>Schmalz. In Ramen-Brühen, Gyoza, Chāhan.</dd>
+      <dt>ゼラチン<small>zerachin</small></dt><dd>Gelatine. In Gelees, Mousse, manchen Desserts.</dd>
+      <dt>精進料理<small>shōjin ryōri</small></dt><dd>Buddhistische Tempelküche. Traditionell komplett vegan, die sicherste Wahl.</dd>
+    </dl>
+  </details>
+
+  <p class="foot">Die Einschätzung ist eine KI-Schätzung aus Namen und Beschreibung. Bei Allergien oder strengen Regeln immer nachfragen.</p>
+</div>
+
+<!-- Einstellungen -->
+<dialog class="sheet" id="settings" aria-labelledby="settingsTitle">
+  <form method="dialog" class="sheet-body" id="settingsForm">
+    <div class="sheet-head">
+      <h2 id="settingsTitle">Einstellungen</h2>
+      <button class="icon-btn" type="button" id="closeSettings" aria-label="Schließen">✕</button>
+    </div>
+    <label class="field" for="apiKey">
+      <span class="label">Claude API-Schlüssel</span>
+      <input type="password" id="apiKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…">
+    </label>
+    <p class="small">Einen Schlüssel erstellst du unter <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com → API Keys</a>. Guthaben aufladen und am besten ein monatliches Limit setzen. Ein Scan kostet je nach Modell etwa 1 bis 5 Cent.</p>
+    <label class="field" for="model">
+      <span class="label">Modell</span>
+      <select id="model">
+        <option value="claude-sonnet-5">Ausgewogen (Sonnet 5)</option>
+        <option value="claude-haiku-4-5-20251001">Schnell und günstig (Haiku 4.5)</option>
+        <option value="claude-opus-5-5">Am genauesten (Opus 5.5)</option>
+      </select>
+    </label>
+    <div class="row">
+      <button class="go" id="saveSettings" value="save">Speichern</button>
+      <button class="ghost" type="button" id="clearKey">Schlüssel löschen</button>
+    </div>
+    <p class="small" id="settingsMsg"></p>
+  </form>
+</dialog>
+
+<!-- Verlauf -->
+<dialog class="sheet" id="history" aria-labelledby="historyTitle">
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <h2 id="historyTitle">Verlauf</h2>
+      <button class="icon-btn" id="closeHistory" aria-label="Schließen">✕</button>
+    </div>
+    <ul class="hist" id="histList"></ul>
+    <button class="ghost" id="clearHistory">Verlauf löschen</button>
+  </div>
+</dialog>
+
+<div class="overlay" id="overlay" hidden>
+  <p class="big" id="bigText" dir="auto"></p>
+  <p class="small" id="bigSmall"></p>
+  <button class="ghost" id="closeBig">Schließen</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
